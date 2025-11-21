@@ -1,0 +1,266 @@
+---
+title: "Chapter 1 - Basic Operations"
+format: html
+author: "Rodolfo León"
+date: last-modified
+editor: source
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+#| echo: false
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(pander)
+})
+```
+
+```{r, echo=FALSE}
+# Set pander options for table formatting
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+```
+
+
+### 1. Create matrices
+
+```{r}
+A = matrix(c(4,2,0,2,1,0,-2,-1,1), ncol = 3)
+B = matrix(c(2,3,1,2,-2,-2,-1,2,1), ncol = 3)
+C = matrix(c(3,1,-3,0,2,6,-1,2,1), ncol = 3)
+
+pander("Matrix A:")
+pander(A)
+pander("Matrix B:")
+pander(B)
+pander("Matrix C:")
+pander(C)
+```
+
+### 2. Add matrices
+
+```{r}
+pander ("Matrix A + B")
+pander(A + B)
+```
+
+### 2. Multiplication
+
+```{r}
+pander("Matrix A x B")
+pander(A %*% B)
+```
+
+### 3. Matrix Product = Transpose of a Product
+
+```{r}
+### 4. Verify that (A*B)' = B'A'
+pander("Matrix product: (A*B)' = (t(A%*%B))")
+pander (t(A%*%B))
+
+pander("Matrix product: (A*B)' = B'A'" )
+pander(t(B) %*% t(A))
+```
+```{r}
+t(A%*%B) == t(B) %*% t(A)
+```
+
+
+### Exercises Schaum's Chapter 1
+
+1.1
+
+```{r}
+A = matrix(c(2,3,4), ncol = 1)
+B = matrix(c(5,6,-7), ncol = 1)
+C = matrix(c(7,-8,-9), nrow = 1)
+
+sum(A * B)
+sum(B * t(C))
+```
+
+1.2
+
+```{r}
+sum(A + B) == sum(B + A)
+```
+
+1.3
+
+```{r}
+A = matrix(c(0, 1, 2, 3), nrow = 2, byrow = TRUE)
+B = matrix(c(4,5,6,-7), nrow = 2, byrow = TRUE)
+
+sum(3*A - 0.5*B)
+```
+
+1.4
+
+```{r}
+pander(A %*% B)
+cat("\n")
+pander(B %*% A)
+```
+
+1.5
+
+```{r}
+A = matrix(c(1,2,3,4,-5,6), nrow = 2, byrow = TRUE)
+B = matrix(c(7,8,0,-9), nrow = 2, byrow = TRUE)
+
+#A %*% B  # Will return error 
+pander(B %*% A)
+```
+
+1.6
+
+```{r}
+t(B%*%A) == t(A) %*% t(B)
+```
+
+1.7
+
+```{r}
+A = matrix(c(4,2,0,2,1,0,-2,-1,-1), nrow = 3, byrow = TRUE)
+B = matrix(c(2,3,1,2,-2,-2,-1,2,1), nrow = 3, byrow = TRUE)
+C = matrix(c(3, 1,-3,0,2,6,-1,2,1), nrow = 3, byrow = TRUE)
+
+cat("AB =")
+pander(A%*%B)
+cat("AC =")
+pander(A%*%C)
+```
+
+1.9 (1.8 skipped)
+
+```{r}
+C = matrix(c(1,2,3,4), nrow = 2, byrow = TRUE)
+D = matrix(c(0,0,0,0), nrow = 2, byrow = TRUE)
+E = matrix(c(5,6,7,8), nrow = 2, byrow = TRUE)
+F = matrix(c(-1,0,2,1), nrow = 2, byrow = TRUE)
+G = matrix(c(-2,-3,1,1), nrow = 2, byrow = TRUE)
+A = matrix(c(C,D,E,C), nrow = 2, byrow = TRUE)
+B = matrix(c(F,G,F,E), nrow = 2, byrow = TRUE)
+```
+
+```{r}
+# Combine matrices to form A and B
+A = rbind(cbind(C, D), cbind(E, C))
+B = rbind(cbind(F, G), cbind(F, E))
+
+# Perform matrix multiplication
+AB = A %*% B
+cat("AB =\n")
+pander(AB)
+
+A_B = A - B
+cat("\nA - B =\n")
+pander(A_B)
+```
+
+### Convert matrices to echelon form
+1.12
+```{r}
+B = matrix(c(0,1,4,1,2,3),
+            nrow = 2, byrow = TRUE) 
+C = matrix(c(0,2,4,0,0,1),
+            nrow = 2, byrow = TRUE)
+E = matrix(c(1,2,3,4,9,7), 
+           nrow = 2, byrow = TRUE)
+```
+
+
+```{r}
+# Define the function to convert a matrix to row echelon form without row swapping
+row_echelon_no_swap <- function(mat, tol = 1e-10) {
+  nr <- nrow(mat)
+  nc <- ncol(mat)
+  
+  for (i in 1:min(nr, nc)) {
+    # Only swap rows if the current pivot is zero or smaller than tolerance
+    if (abs(mat[i, i]) <= tol) {
+      pivot_row <- i + which.max(abs(mat[i:nr, i])) - 1
+      if (abs(mat[pivot_row, i]) > tol && pivot_row != i) {
+        mat[c(i, pivot_row), ] <- mat[c(pivot_row, i), ]
+      }
+    }
+    
+    # Normalize the pivot row
+    if (abs(mat[i, i]) > tol) {
+      mat[i, ] <- mat[i, ] / mat[i, i]
+    }
+    
+    # Eliminate entries below the pivot
+    if (i < nr) {
+      for (j in (i + 1):nr) {
+        if (abs(mat[j, i]) > tol) {
+          mat[j, ] <- mat[j, ] - mat[j, i] * mat[i, ]
+        }
+      }
+    }
+  }
+  
+  return(mat)
+}
+```
+
+```{r}
+Bre = row_echelon_no_swap(B)
+pander("Row Echelon Form of B:")
+pander(Bre)
+
+Cre = row_echelon_no_swap(C)
+pander("Row Echelon Form of C:")
+pander(Cre)
+
+Ere = row_echelon_no_swap(E)
+pander("Row Echelon Form of E:")
+pander(Ere)
+```
+1.15
+```{r}
+library(MASS) # For fractions display
+M = matrix(c(3,2,1,-4,1,2,3,0,-1,-1,1,-6,3,-8,7), nrow = 3, byrow = TRUE)
+Mre = row_echelon_no_swap(M)
+pander("Row Echelon Form of M:\n")
+fractions(Mre)
+```
+
+```{r}
+# Example matrices:
+U <- matrix(c(1,2,-1,6,
+              3,8,9,10,
+              2,-1,2,-2),
+            nrow = 3, byrow = TRUE)
+
+V <- matrix(c(2,1,0,5,
+              3,6,1,1,
+              5,7,1,8),
+            nrow = 3, byrow = TRUE)
+
+# Perform row echelon conversion
+row_echelon_no_swap(U)
+cat("\n")
+V = row_echelon_no_swap(V)
+pander("Row Echelon Form of V:\n")
+fractions(V)
+```
+
+```{r}
+E <- matrix(c(2, 2, 1, 0, 10,
+            3, 0, -1, 1, -11,
+            0, 1, 0, 5, 5,
+            -1, 1, 0, 0, 14), 
+        nrow = 5, byrow = TRUE)
+Ere = row_echelon_no_swap(E)
+pander("Row Echelon Form of E:\n")
+fractions(Ere)
+```

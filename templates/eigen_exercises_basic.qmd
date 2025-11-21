@@ -1,0 +1,96 @@
+---
+title: "Eigenvalue Exercises (Basic QR Methods)"
+author: "Rudy — Schaum’s Mastery Project"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+library(MASS) # for fractions() if needed
+library(pander)
+```
+
+```{r}
+source("functions/lu_pivot_fr.R")         # LU routines
+source("functions/matrix_tools_b.R")      # Numerical matrix tools
+```
+
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("round", 6)
+```
+
+## 1. Problem statement
+#### 20.2 Construct a QR decomposition for the matrix with fractions:
+```{r}
+# 3. Define the matrix
+A <- matrix(c(-4,2,2,
+              3,-3,3,
+              6,6,0),
+            nrow = 3, byrow = TRUE)
+```
+
+```{r}
+# 4. Fraction-Based LU Decomposition
+LU_fr <- lu_pivot_fr(A)
+
+cat("\nPermutation matrix P:\n")
+pander_clean(LU_fr$P)
+
+cat("\nL (fractions):\n")
+pander_clean(LU_fr$L)
+
+cat("\nU (fractions):\n")
+pander_clean(LU_fr$U)
+
+cat("\nFull Pretty Fraction Print:\n")
+print_lu_fr(LU_fr)
+
+cat("\nCheck P %*% A:\n")
+pander_clean(LU_fr$P %*% A)
+pander_clean(LU_fr$L %*% LU_fr$U)
+```
+
+```{r}
+# 5. Verification (using exact arithmetic)
+cat("\nCheck P %*% A:\n")
+pander_clean(LU_fr$P %*% A)
+
+cat("\nCheck L %*% U:\n")
+pander_clean(as.matrix(LU_fr$L) %*% as.matrix(LU_fr$U))
+
+```
+
+```{r}
+# 6. Compare to Decimal LU (Optional)
+
+# Numeric LU (pivoted) using your other toolbox
+
+source("functions/matrix_tools.R")
+
+LU_num <- crout_decomposition_pivoting(A)
+
+cat("\nNumeric L (pivoted):\n"); pander_clean(LU_num$L)
+cat("\nNumeric U (pivoted):\n"); pander_clean(LU_num$U)
+
+
+```
+
+```{r}
+
+```
+
+
+

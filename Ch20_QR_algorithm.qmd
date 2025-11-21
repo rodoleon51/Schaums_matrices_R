@@ -1,0 +1,82 @@
+---
+title: "Chapter 20 -The QR Algorithm"
+author: "Rodolfo León"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+# Matrix Notebook
+This notebook contains matrices for exercises drawn from **Schaum's Matrix Operations** (and other Schaum volumes).
+
+All computations use the functions defined in: functions/matrix_tools.R and functions/matrix_tools_b.R contain the necessary functions for this chapter.
+
+| Goal                   | Function                 | Typical Call                     |
+| ---------------------- | ------------------------ | -------------------------------- |
+| Get QR (best)          | `qr_householder()`       | `QR <- qr_householder(A)`        |
+| Get QR (general)       | `qr_decomposition()`     | `QR <- qr_decomposition(A)`      |
+| Classical GS           | `gram_schmidt_cgs()`     | `GS <- gram_schmidt_cgs(A)`      |
+| Modified GS            | `gram_schmidt_mgs()`     | `GS <- gram_schmidt_mgs(A)`      |
+| Eigenvalues (basic QR) | `qr_algorithm()`         | `eig <- qr_algorithm(A)`         |
+| Eigenvalues (fast)     | `qr_algorithm_shifted()` | `eig <- qr_algorithm_shifted(A)` |
+| Clean print            | `print_matrix_clean()`   | `print_matrix_clean(A)`          |
+| Zero-out tiny numbers  | `round_small()`          | `round_small(A)`                 |
+
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+source("functions/matrix_tools.R")
+source("functions/matrix_tools_b.R")
+library(pander)
+```
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("digits", 3)
+```
+
+```{r}
+#20.2 QR decomposition
+ A = matrix(c(-4,2,2,
+              3,-3,3,
+              6,6,0), nrow=3, byrow=TRUE)
+
+
+QR <- qr_decomposition(A)
+  
+  Q <- QR$Q
+  R <- QR$R
+  
+  cat("\nMatrix A:\n"); pander_clean(A)
+  
+  cat("\nQ Matrix:\n"); pander_clean(Q)
+  cat("\nR Matrix:\n"); pander_clean(R)
+  
+  cat("\nCheck QᵀQ = I:\n")
+  pander_clean(t(Q) %*% Q)
+  
+  cat("\nCheck QR = A:\n")
+  pander_clean(Q %*% R)
+ 
+
+```
+
+
+```{r}
+out <- qr_algorithm(A)
+  
+cat("\nEigenvalues (QR Algorithm):\n")
+print(out$values)
+  
+cat("\n\nEigenvalues (base R eigen()):\n")
+print(eigen(A)$values)
+```
+

@@ -1,0 +1,111 @@
+---
+title: "Matrix Notebook – Schaum's Mastery"
+author: "Rodolfo León"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+# Matrix Notebook
+This notebook contains matrices for exercises drawn from **Schaum's Matrix Operations** (and other Schaum volumes).
+
+It serves as an **organized workbook** you can use for:
+- LU decomposition (Crout, Doolittle, pivoting)
+- Solving Ax = b
+- Determinants
+- Matrix inverses
+- REF / RREF
+- Rank
+- Other linear algebra routines
+
+All computations use the functions defined in:
+functions/matrix_tools.R
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+source("functions/matrix_tools.R")
+library(pander)
+panderOptions("digits", 6)
+```
+
+```{r}
+# row_echelon_form()
+# lu_c <- crout_decomposition()
+# lu_d <- doolittle_decomposition()
+# solve_lu()
+# det_lu()
+# matrix_inverse()
+# rank_lu()
+# matvec()
+# crout_decomposition_pivoting()
+# solv_doolittle()
+# det_doolittle()
+# inverse_doolittle()
+# run_full_analysis() 
+```
+
+
+```{r}
+# 3.3
+A <- matrix(c(1, 2, -1,
+              3, 8,  9,
+              2, -1,  2),
+            nrow = 3, byrow = TRUE)
+
+lu_d <- doolittle_decomposition(A)
+  pander("L (Doolittle)"); pander(lu_d$L)
+  pander("U (Doolittle)"); pander(lu_d$U)
+```
+
+```{r}
+# 3.4
+G <- matrix(c(1,2,-2,3,
+              -1, 1,0,2,
+              3,-3,4,1,
+              2,1,1,-2),
+            nrow = 4, byrow = TRUE)
+
+lu_d <- doolittle_decomposition(G)
+  pander("L (Doolittle)"); pander(lu_d$L)
+  pander("U (Doolittle)"); pander(lu_d$U)
+```
+```{r}
+# 3.5
+K <- matrix(c(1,2,-2,3,
+              -1,-2,0,2,
+              3,-3,0,1,
+              2,1,1,-2),
+            nrow = 4, byrow = TRUE)
+
+lu_d <- doolittle_decomposition(K)
+  pander("L (Doolittle)"); pander(lu_d$L)
+  pander("U (Doolittle)"); pander(lu_d$U)
+```
+
+```{r}
+F <- matrix(c(1,2,3,4,
+              2,-2,-1,1,
+              1,-3,4,-4,
+              2,2,-3,4),
+              nrow = 4, byrow = TRUE)
+
+run_full_analysis(F)
+
+```
+
+```{r}
+A <-  matrix(c(2,2,1,0,
+               3,0,-1,1,
+               0,1,0,5,
+               -1,1,0,0), nrow=4, byrow=TRUE)
+
+b <- c(10,-11,5,14)
+
+solve_doolittle(A, b)
+
+```
+

@@ -1,0 +1,147 @@
+---
+title: "Schaum's Matrix Operations"
+format: html
+author: "Rodolfo León"
+date: last-modified
+editor: source
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+#| echo: false
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(pracma)
+  library(ggthemes)
+  library(Matrix)
+  library(MASS)
+  library(pander)
+})
+```
+
+```{r, echo=FALSE}
+# Set pander options for table formatting
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions("digits", 6)
+cat("\n")
+pander("# Test Suite for matrix_tools.R")
+```
+
+```{r}
+source("functions/matrix_tools.R")
+source("functions/test_matrix_tools.R")
+```
+
+```{r}
+# ==============================================================
+# Utility heading function
+# ==============================================================
+
+section <- function(title) {
+  cat("\n\n")
+  pander(paste0("## ", title))
+  cat("\n")
+}
+```
+
+```{r}
+# ==============================================================
+# Test Matrix and Vector
+# ==============================================================
+
+section("Test Matrix and Vector")
+
+A <- matrix(c(
+  1,  2, -2,  3,
+ -1,  1,  0,  2,
+  3, -3,  4,  1,
+  2,  1,  1, -2
+), nrow = 4, byrow = TRUE)
+
+b <- c(3, -1, 7, 13)
+
+pander("### Matrix A")
+pander(A)
+
+pander("### Vector b")
+pander(b)
+```
+
+```{r}
+# ==============================================================
+# 1. Crout LU Decomposition
+# ==============================================================
+
+section("Crout LU Decomposition")
+
+lu_c <- crout_decomposition(A)
+
+pander("### L (Crout)")
+pander(lu_c$L)
+
+pander("### U (Crout)")
+pander(lu_c$U)
+pander("### Verification: PA = LU")
+pander(lu_c$PA)
+```
+
+```{r}
+# ==============================================================
+# 2. Solve Ax = b
+# ==============================================================
+
+solve_lu <- function(A, b, L = NULL, U = NULL, pivoting = FALSE) {
+  A <- as.matrix(A)
+  b <- as.numeric(b)
+  n <- nrow(A)
+
+  if (is.null(L) || is.null(U)) {
+    if (pivoting) {
+      lu <- crout_decomposition_pivoting(A)
+      P <- lu$P
+      L <- lu$L
+      U <- lu$U
+      b <- as.vector(P %*% b)
+    } else {
+      lu <- crout_decomposition(A)
+      L <- lu$L
+      U <- lu$U
+    }
+  }
+
+  # Forward substitution (L y = b)
+  y <- numeric(n)
+  for (i in 1:n) {
+    if (i > 1)
+      s <- sum(L[i, 1:(i - 1)] * y[1:(i - 1)])
+    else
+      s <- 0
+
+    y[i] <- b[i] - s
+  }
+
+  # Backward substitution (U x = y)
+  x <- numeric(n)
+  for (i in n:1) {
+    if (i < n)
+      s <- sum(U[i, (i + 1):n] * x[(i + 1):n])
+    else
+      s <- 0
+
+    x[i] <- (y[i] - s) / U[i, i]
+  }
+
+  x
+}
+
+cat(x)
+```
+

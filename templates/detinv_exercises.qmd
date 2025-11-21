@@ -1,0 +1,127 @@
+---
+title: "Determinants & Inverses Exercises (LU-Based Methods)"
+author: "Rudy — Schaum’s Mastery Project"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+library(pander)
+```
+
+```{r}       
+source("functions/matrix_tools.R")     # LU functions
+source("functions/matrix_tools_b.R")   # rounding + pander_clean
+```
+
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("round", 6)
+```
+
+## 1. Problem statement
+#### “Compute the determinant and inverse of the matrix A using LU decomposition.”
+```{r}
+# 3. Define the matrix
+A <- matrix(c(2,3,1,
+              4,7,1,
+              6,18,5),
+            nrow = 3, byrow = TRUE)
+
+cat("\nMatrix A:\n")
+pander_clean(A)
+```
+
+```{r}
+#4. Determinant via LU (Non-Pivoted)
+LU_np <- doolittle_decomposition(A)
+
+L <- LU_np$L
+U <- LU_np$U
+
+cat("\nL (non-pivoted):\n"); pander_clean(L)
+cat("\nU (non-pivoted):\n"); pander_clean(U)
+
+# Determinant = product of diagonal entries of U
+det_np <- prod(diag(U))
+
+cat("\nDeterminant (non-pivoted LU):\n")
+pander_clean(det_np)
+```
+
+```{r}
+#5. Determinant via Pivoted LU (Recommended)
+LU_p <- doolittle_decomposition_pivoting(A)
+
+P <- LU_p$P
+L <- LU_p$L
+U <- LU_p$U
+
+cat("\nPivoted LU — P:\n"); pander_clean(P)
+cat("\nL:\n"); pander_clean(L)
+cat("\nU:\n"); pander_clean(U)
+
+# Sign of permutation matrix
+perm_sign <- determinant(P)$sign
+
+det_p <- perm_sign * prod(diag(U))
+
+cat("\nDeterminant (pivoted LU):\n")
+pander_clean(det_p)
+
+```
+
+```{r}
+#6. Determinant in Base R
+cat("\nDeterminant (base R det()):\n")
+pander_clean(det(A))
+
+```
+
+```{r}
+#7. Inverse via Solve (Using LU)
+I <- diag(nrow(A))
+
+A_inv <- sapply(1:nrow(A), function(i) solve_lu(A, I[,i]))
+A_inv <- matrix(A_inv, nrow(A), nrow(A))
+
+cat("\nInverse of A (via LU):\n")
+pander_clean(A_inv)
+```
+
+```{r}
+#8. Verify Inverse
+
+cat("\nCheck A %*% A_inv:\n")
+pander_clean(A %*% A_inv)
+
+cat("\nCheck A_inv %*% A:\n")
+pander_clean(A_inv %*% A)
+
+```
+
+```{r}
+#9. Inverse via Base R (For Comparison)
+A_inv_R <- solve(A)
+
+cat("\nBase R inverse:\n")
+pander_clean(A_inv_R)
+
+```
+
+```{r}
+
+```
+

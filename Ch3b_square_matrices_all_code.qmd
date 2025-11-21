@@ -1,0 +1,150 @@
+---
+title: "Schaum's Chapter 3: Square Matrices"
+format: html
+author: "Rodolfo León"
+date: last-modified
+editor: source
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+#| echo: false
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(ggthemes)
+  library(Matrix)
+  library(MASS)
+  library(pander)
+})
+```
+
+```{r, echo=FALSE}
+# Set pander options for table formatting
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+```
+
+```{r}
+# 1. Build the matrices
+A <- matrix(c(1, 2, -1,
+              3, 8,  9,
+              2, -1,  2),
+            nrow = 3, byrow = TRUE)
+B <- matrix(c(1,2,3,
+              4,5,6,
+              7,8,9,
+            nrow = 3, byrow = TRUE))
+C <- matrix(c(2, -1, 4,
+              -1, 3, 3,
+              -1, 2, 0),
+            nrow = 3, byrow = TRUE)
+D <- matrix(c(1,0,0,2,
+              2,1,0,1,
+              0,2,2,0,
+              0,3,0,1),
+            nrow = 4, byrow = TRUE)
+E <- matrix(c(1,2,3,4,
+              2,4,-1,1,
+              1,-3,4,-4,
+              2,2,-3,4),
+            nrow = 4, byrow = TRUE)
+F <- matrix(c(1,2,3,4,
+              2,-2,-1,1,
+              1,-3,4,-4,
+              2,2,-3,4),
+              nrow = 4, byrow = TRUE)
+G <- matrix(c(1,2,-2,3,
+              -1,1,0,2,
+              3,-3,4,1,
+              2,1,1,-2),
+            nrow = 4, byrow = TRUE)
+
+```
+
+```{r}
+# No pivoting Gaussian elimination
+gaussian_elimination <- function(A) {
+  n <- nrow(A)
+  P <- diag(n)    # Start with identity; will accumulate elimination steps
+  R <- A          # Copy to modify
+  
+  for (j in 1:(n-1)) {  # For each column j
+    # Check pivot
+    if (abs(R[j,j]) < 1e-12) stop("Pivot too small – need pivoting")
+    
+    for (i in (j+1):n) {  # Eliminate below pivot in rows i > j
+      m_ij <- R[i,j] / R[j,j]         # Multiplier
+      E <- diag(n)
+      E[i, j] <- -m_ij                 # Elementary elimination matrix
+      
+      R <- E %*% R
+      P <- E %*% P
+    }
+  }
+  
+  list(P = P, R = R, L = solve(P))  # A = L R
+}
+```
+
+```{r}
+lu_with_pivoting <- function(A) {
+  n <- nrow(A)
+  L <- diag(n)
+  U <- A
+  P <- diag(n)  # Permutation matrix
+  
+  for (j in 1:(n-1)) {
+    # --- Partial pivoting: find max pivot in column j ---
+    pivot_row <- which.max(abs(U[j:n, j])) + j - 1
+    if (abs(U[pivot_row, j]) < 1e-12) stop("Matrix is singular")
+    
+    # Swap rows in U and track in P
+    if (pivot_row != j) {
+      swap <- c(j, pivot_row)
+      U[swap, ] <- U[swap, ]
+      P[swap, ] <- P[swap, ]
+      if (j > 1) L[swap, 1:(j-1)] <- L[swap, 1:(j-1)]  # Swap prior L entries
+    }
+    
+    # --- Elimination ---
+    for (i in (j+1):n) {
+      L[i,j] <- U[i,j] / U[j,j]
+      U[i, j:n] <- U[i, j:n] - L[i,j] * U[j, j:n]
+    }
+  }
+  # Removed incorrect lines: L <- L + U; diag(L) <- 1; diag(U) <- diag(U)
+  
+  list(P = P, L = L, U = U)  # P A = L U
+}
+```
+
+```{r}
+# Interactive: Prompt for matrix name and perform LU with partial pivoting
+matrix_name <- readline("Enter matrix name (A, B, C, D): ")
+mat <- get(matrix_name)
+
+lu_pivot <- lu_with_pivoting(mat)
+cat("Selected Matrix:", matrix_name,"\n")
+pander(mat)
+cat("\nPermutation Matrix P:\n")
+pander(lu_pivot$P)
+cat("\nLower Triangular Matrix L:\n")
+pander(round(lu_pivot$L, 6))
+cat("\nUpper Triangular Matrix U:\n")
+pander(round(lu_pivot$U, 6))
+cat("\nVerification (P %*% mat):\n")
+pander(round(lu_pivot$P %*% mat, 6))
+cat("\nVerification (L %*% U):\n")
+pander(round(lu_pivot$L %*% lu_pivot$U, 6))
+```
+
+
+
