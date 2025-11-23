@@ -1,0 +1,283 @@
+---
+title: "Chapter 2 - Simultaneous Linear Equations"
+author: "Rudy — Schaum’s Mastery Project"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+```{r setup}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+options(digits = 6)  # Set global digits to 10
+panderOptions("digits", 6)
+options(scipen = 10)  # Avoid scientific notation
+```
+
+```{r}
+library(MASS) # for fractions() if needed
+library(pander)
+```
+
+```{r}
+source("functions/matrix_tools.R")
+source("functions/matrix_tools_b.R")
+source("functions/lu_pivot_fr.R")
+```
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("round", 10)
+```
+
+#1. Problem statement
+
+#2. Enter the System of Equations
+
+```{r}
+#2.8
+# A = matrix(c(1,2,-1,
+#              3,8,9,
+#              2,-1,2),
+#             nrow = 3, byrow = TRUE)
+# 
+# b = c(6,10,-2)
+# 2.24
+# A = matrix(c(1,2,3,4,
+#              2,-2,-1,1,
+#              1,-3,4,-4,
+#              2,2,-3,4),
+#            nrow = 4, byrow = TRUE)
+# b = c(8,-3,8,-2)
+#2.25
+# A = matrix(c(1/2, 1/3, 1/4, 1/5,
+#              1/3, 1/4, 1/5, 1/6,
+#              1/4, 1/5, 1/6, 1/7,
+#              1/5, 1/6, 1/7, 1/8),
+#            nrow = 4, byrow = TRUE)
+# b = c(10,11,12,13)
+#2.26
+# A = matrix(c(1.0001,2,3,4,
+#              1,2.0001,3,4,
+#              1,2,3.0001,4,
+#              1,2,3,4.0001),
+#            nrow = 4, byrow = TRUE)
+# b = c(5,6,7,8)
+#2.27
+A = matrix(c(0.0001,1,0.0001,
+             1,2,1,
+             0.0001,1,-0.0001),
+           nrow = 3, byrow = TRUE)
+b = c(0.0002,1,0.0001)
+          
+
+cat("\nMatrix A:\n")
+pander(A)
+
+cat("\nVector b:\n")
+pander(b)
+
+```
+
+#3. Rank Tests (Consistency)
+
+```{r}
+REF <- row_echelon_form(list(A = cbind(A,b)), "A", form = "both")
+
+REF_only  <- REF$REF
+RREF_only <- REF$RREF
+
+cat("\nREF of [A|b]:\n")
+pander(REF_only)
+
+cat("\nRREF of [A|b]:\n")
+pander(RREF_only)
+
+rank_A  <- rank_lu(A)
+rank_Ab <- rank_lu(cbind(A,b))
+
+cat("\nRank(A): ", rank_A, "\n")
+cat("Rank([A|b]): ", rank_Ab, "\n")
+
+if (rank_A == rank_Ab && rank_A == nrow(A)) {
+cat("\nSystem is consistent with a unique solution.\n")
+} else if (rank_A == rank_Ab && rank_A < nrow(A)) {
+cat("\nSystem is consistent with infinitely many solutions.\n")
+} else {
+cat("\nSystem is inconsistent: no solution.\n")
+}
+
+```
+
+#4. Solve System Using LU (Crout, No Pivot)
+
+```{r}
+cat("\nSolution via Crout (no pivot):\n")
+x_crout <- solve_lu(A, b)
+pander(x_crout)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_crout)
+
+```
+
+#5. Solve System Using Doolittle
+
+```{r}
+cat("\nSolution via Doolittle:\n")
+x_dool <- solve_doolittle(A, b)
+pander(x_dool)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_dool)
+
+```
+
+#6. Solve System Using Pivoted Doolittle
+
+```{r}
+cat("\nSolution via Pivoted Doolittle:\n")
+x_dool_p <- solve_doolittle_pivot(A, b)
+pander(x_dool_p)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_dool_p)
+
+```
+
+#7. Solve System Using Matrix Inverse (When Valid)
+
+```{r}
+if (rank_A == nrow(A)) {
+A_inv <- matrix_inverse(A)
+x_inv <- A_inv %*% b
+
+cat("\nSolution via A^{-1} b:\n")
+pander(x_inv)
+} else {
+cat("\nMatrix A is singular — inverse method not applicable.\n")
+}
+
+```
+
+#8. Solve System Using Base R solve()
+
+```{r}
+if (rank_A == nrow(A)) {
+x_base <- solve(A, b)
+cat("\nSolution via base::solve():\n")
+pander(x_base)
+} else {
+cat("\nMatrix A is singular — solve() cannot be used.\n")
+}
+
+```
+
+#9. Homogeneous System𝐴𝑥= 0
+
+```{r}
+cat("\nHomogeneous system Ax = 0:\n")
+pander(A)
+pander(b)
+
+# Solve by REF/RREF (gives free-variable structure)
+
+REF_A <- row_echelon_form(list(A = A), "A", form = "both")
+
+cat("\nREF of A:\n")
+pander(REF_A$REF)
+
+cat("\nRREF of A:\n")
+pander(REF_A$RREF)
+
+cat("\nPivot columns:\n")
+pander(REF_A$pivots)
+
+cat("\nRank(A): ", rank_A, "\n")
+
+if (rank_A == ncol(A)) {
+cat("\nOnly trivial solution x = 0.\n")
+} else {
+cat("\nNon-trivial solutions exist (infinitely many).\n")
+}
+
+```
+
+## 11. Understanding the Homogeneous System \(A x = 0\)
+
+The system \(A x = b\) (the one we solve using LU factorization) is *non-homogeneous*.  
+The related system
+
+\[
+A x = 0
+\]
+
+is called the **homogeneous system** associated with the same matrix \(A\).  
+It plays a central role in linear algebra because it reveals the **internal structure** of \(A\).
+
+### What the Homogeneous System Tells Us
+
+- The set of all solutions of \(A x = 0\) is the **null space** (kernel) of \(A\).
+- It answers: *Are there directions that the matrix collapses to zero?*  
+- It determines whether columns of \(A\) are **linearly independent**.
+- It determines whether the matrix is **invertible**.
+- It determines whether the non-homogeneous system \(A x = b\) has:
+  - a **unique** solution,
+  - **infinitely many** solutions, or
+  - **no** solutions.
+
+### What We Found for This Matrix
+
+In this example, the REF/RREF form shows a pivot in *every* column:
+
+- rank(A) = number of variables = 3  
+- no free variables  
+- null space dimension = 0  
+
+Therefore:
+
+\[
+A x = 0 \;\Rightarrow\; x = 0.
+\]
+
+This is called the **trivial solution**, and it means:
+
+- The columns of \(A\) are linearly independent.  
+- The matrix is invertible.  
+- The system \(A x = b\) has a **unique, well-behaved** solution.  
+- LU factorizations (with or without pivoting) are valid.
+
+### Why Schaum’s Includes This Analysis
+
+The homogeneous system reveals *why* your solution exists and why it is unique.  
+It explains the **structure** of the matrix, not just the answer to a single system.
+
+When the homogeneous system has only \(x = 0\):
+
+- The non-homogeneous system behaves perfectly.
+- There are no “hidden dependencies” among the equations.
+- No free variables appear.
+- The algebra is stable and predictable.
+
+When the homogeneous system has non-zero solutions, this signals:
+
+- infinite solutions for \(A x = b\), or  
+- inconsistency if the augmented matrix \([A|b]\) produces a contradiction.
+
+### Summary
+
+The homogeneous system \(A x = 0\) is not about solving the original problem.  
+It is about understanding the **deep algebraic structure** of the matrix:
+
+- rank  
+- null space  
+- linear independence  
+- invertibility  
+- solution behavior of all systems \(A x = b\)
+
+Keeping this block in the notebook provides insight into *why* the solution behaves as it does.
+

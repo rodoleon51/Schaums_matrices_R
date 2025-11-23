@@ -1,0 +1,204 @@
+---
+title: "Determinants & Inverses Exercises (LU-Based Methods)"
+author: "Rudy — Schaum’s Mastery Project"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+```{r}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/OneDrive/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+library(pander)
+```
+
+```{r}       
+source("functions/matrix_tools.R")     # LU functions
+source("functions/matrix_tools_b.R")   # rounding + pander_clean
+```
+
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("round", 6)
+```
+
+## 1. Problem statement
+#### 
+```{r}
+# I. Chapter 4 - INVERSES
+# 3. Define the matrix
+## 4.3
+# A <- matrix(c(2,1,3,
+#               0,1,2,
+#               0,0,3),
+#             nrow = 3, byrow = TRUE)
+## 4.4a
+# A = matrix(c(3,0,0,0,
+#              1,-2,0,0,
+#              2,4,1,0,
+#              1,3,-1,0),
+#             nrow = 4, byrow = TRUE)
+## 4.4b
+A <- matrix(c(-1,0,0,0,
+              2,-2,0,0,
+              3,1,-2,0,
+              1,-1,3,3),
+            nrow = 4, byrow = TRUE)
+## 4.5
+# A <- matrix(c(5,3,
+#               2,1),
+#             nrow = 2, byrow = TRUE)
+## 4.6
+# A <- matrix(c(1,2,3,
+#               4,5,6,
+#               7,8,9),  
+#             nrow =  3, byrow = TRUE)   # Does not have inverse
+## 4.7
+# A <- matrix(c(0,1,1,
+#               5,1,-1,
+#               2,-3,-3), byrow = TRUE, nrow = 3)
+
+```
+
+```{r}
+## Chapter 5 - DETERMINANTS
+# 3. Define the matrix
+# 5.1a
+# A = matrix(c(1,2,
+#              3,4),
+#            nrow = 2, byrow = TRUE)
+# 5.1b
+# A = matrix(c(2,-3,
+#              4,5),
+#            nrow = 2, byrow = TRUE)
+# 5.2
+# A = matrix(c(2,3,4,
+#             -5,5,6,
+#              7,8,9),
+#             nrow = 3, byrow = TRUE)
+# 5.3
+# A = matrix(c(-3,4,0,
+#              -2,7,6,
+#              5,-8,0),
+#            nrow = 3, byrow = TRUE)
+# 5.4
+# A = matrix(c(1,-4,2,-2,
+#              4,7,-3,5,
+#              3,0,8,0,
+#              -5,-1,6,9), 
+#             nrow = 4, byrow = TRUE)
+# 5.6
+# A = matrix(c(0,2,2,
+#              1,0,3,
+#              2,1,1), 
+#             nrow = 3, byrow = TRUE)
+# 5.7
+# A = matrix(c(1,2,-3,4,
+#              2,-2,5,-6,
+#              -1,3,-4,6,
+#              6,5,-3,6),
+#            byrow = TRUE, nrow = 4)
+A = matrix(c(5,3,0,2,5,
+             0,2,1,1,-6,
+             0,1,2,1,1,
+             0,0,0,3,6,
+             0,0,0,1,-1),
+           byrow = TRUE, nrow = 5)
+
+
+```
+
+```{r}
+cat("\nMatrix A:\n")
+pander_clean(A)
+```
+
+
+```{r}
+#4. Determinant via LU (Non-Pivoted)
+LU_np <- doolittle_decomposition(A)
+
+L <- LU_np$L
+U <- LU_np$U
+
+cat("\nL (non-pivoted):\n"); pander_clean(L)
+cat("\nU (non-pivoted):\n"); pander_clean(U)
+
+# Determinant = product of diagonal entries of U
+det_np <- prod(diag(U))
+
+cat("\nDeterminant (non-pivoted LU):\n")
+pander_clean(det_np)
+```
+
+```{r}
+#5. Determinant via Pivoted LU (Recommended)
+LU_p <- doolittle_decomposition_pivoting(A)
+
+P <- LU_p$P
+L <- LU_p$L
+U <- LU_p$U
+
+cat("\nPivoted LU — P:\n"); pander_clean(P)
+cat("\nL:\n"); pander_clean(L)
+cat("\nU:\n"); pander_clean(U)
+
+# Sign of permutation matrix
+perm_sign <- determinant(P)$sign
+
+det_p <- perm_sign * prod(diag(U))
+
+cat("\nDeterminant (pivoted LU):\n")
+pander_clean(det_p)
+
+```
+
+```{r}
+#6. Determinant in Base R
+
+cat("\nDeterminant (base R det()):\n")
+pander_clean(det(A))
+
+```
+
+```{r}
+#7. Inverse via Solve (Using LU)
+I <- diag(nrow(A))
+
+A_inv <- sapply(1:nrow(A), function(i) solve_lu(A, I[,i]))
+A_inv <- matrix(A_inv, nrow(A), nrow(A))
+
+cat("\nInverse of A (via LU):\n")
+pander_clean(A_inv)
+```
+
+```{r}
+#8. Verify Inverse
+
+cat("\nCheck A %*% A_inv:\n")
+pander_clean(A %*% A_inv)
+
+cat("\nCheck A_inv %*% A:\n")
+pander_clean(A_inv %*% A)
+
+```
+
+```{r}
+#9. Inverse via Base R (For Comparison)
+A_inv_R <- solve(A)
+
+cat("\nBase R inverse:\n")
+pander_clean(A_inv_R)
+
+```
+
+
+

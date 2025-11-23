@@ -1,0 +1,181 @@
+---
+title: "Simultaneous Linear Equations"
+author: "Rudy — Schaum’s Mastery Project"
+format: 
+  pdf:
+    code-fold: true
+    code-tools: true
+---
+
+
+```{r setup}
+knitr::opts_knit$set(root.dir = "C:/Users/rodol/Documents/Schaums-mastery/matrices_R", echo = TRUE, warning = FALSE, message = TRUE)
+```
+
+```{r}
+library(MASS) # for fractions() if needed
+library(pander)
+```
+
+```{r}
+source("functions/matrix_tools.R")
+source("functions/matrix_tools_b.R")
+source("functions/lu_pivot_fr.R")
+```
+
+```{r}
+panderOptions('table.split.table', Inf)   # Avoid splitting tables across pages
+panderOptions('table.style', 'multiline') # Enable multiline cell text wrapping
+panderOptions('table.alignment.default', 'center') # Align text to the center
+panderOptions('table.alignment.rownames', 'left') # Align row names (first column) to the left
+panderOptions('table.emphasize.rownames', FALSE)  # Remove the ** from row names
+panderOptions("round", 6)
+```
+
+#1. Problem statement
+
+#2. Enter the System of Equations
+```{r}
+A <- matrix(c(
+
+# a11, a12, a13,
+
+# a21, a22, a23,
+
+# a31, a32, a33
+
+), nrow = 3, byrow = TRUE)
+
+b <- c(
+
+# b1, b2, b3
+
+)
+
+cat("\nMatrix A:\n")
+pander(A)
+
+cat("\nVector b:\n")
+pander(b)
+
+```
+
+#3. Rank Tests (Consistency)
+```{r}
+REF <- row_echelon_form(list(A = cbind(A,b)), "A", form = "both")
+
+REF_only  <- REF$REF
+RREF_only <- REF$RREF
+
+cat("\nREF of [A|b]:\n")
+pander(REF_only)
+
+cat("\nRREF of [A|b]:\n")
+pander(RREF_only)
+
+rank_A  <- rank_lu(A)
+rank_Ab <- rank_lu(cbind(A,b))
+
+cat("\nRank(A): ", rank_A, "\n")
+cat("Rank([A|b]): ", rank_Ab, "\n")
+
+if (rank_A == rank_Ab && rank_A == nrow(A)) {
+cat("\nSystem is consistent with a unique solution.\n")
+} else if (rank_A == rank_Ab && rank_A < nrow(A)) {
+cat("\nSystem is consistent with infinitely many solutions.\n")
+} else {
+cat("\nSystem is inconsistent: no solution.\n")
+}
+
+```
+
+#4. Solve System Using LU (Crout, No Pivot)
+```{r}
+cat("\nSolution via Crout (no pivot):\n")
+x_crout <- solve_lu(A, b)
+pander(x_crout)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_crout)
+
+```
+
+#5. Solve System Using Doolittle
+```{r}
+cat("\nSolution via Doolittle:\n")
+x_dool <- solve_doolittle(A, b)
+pander(x_dool)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_dool)
+
+```
+
+#6. Solve System Using Pivoted Doolittle
+```{r}
+cat("\nSolution via Pivoted Doolittle:\n")
+x_dool_p <- solve_doolittle_pivot(A, b)
+pander(x_dool_p)
+
+cat("\nCheck A %*% x:\n")
+pander(A %*% x_dool_p)
+
+```
+
+#7. Solve System Using Matrix Inverse (When Valid)
+```{r}
+if (rank_A == nrow(A)) {
+A_inv <- matrix_inverse(A)
+x_inv <- A_inv %*% b
+
+cat("\nSolution via A^{-1} b:\n")
+pander(x_inv)
+} else {
+cat("\nMatrix A is singular — inverse method not applicable.\n")
+}
+
+```
+
+#8. Solve System Using Base R solve()
+```{r}
+if (rank_A == nrow(A)) {
+x_base <- solve(A, b)
+cat("\nSolution via base::solve():\n")
+pander(x_base)
+} else {
+cat("\nMatrix A is singular — solve() cannot be used.\n")
+}
+
+```
+
+#9. Homogeneous System𝐴𝑥= 0
+```{r}
+cat("\nHomogeneous system Ax = 0:\n")
+pander(A)
+
+# Solve by REF/RREF (gives free-variable structure)
+
+REF_A <- row_echelon_form(list(A = A), "A", form = "both")
+
+cat("\nREF of A:\n")
+pander(REF_A$REF)
+
+cat("\nRREF of A:\n")
+pander(REF_A$RREF)
+
+cat("\nPivot columns:\n")
+pander(REF_A$pivots)
+
+cat("\nRank(A): ", rank_A, "\n")
+
+if (rank_A == ncol(A)) {
+cat("\nOnly trivial solution x = 0.\n")
+} else {
+cat("\nNon-trivial solutions exist (infinitely many).\n")
+}
+
+```
+
+# End of Document
+
+

@@ -1,5 +1,5 @@
 ---
-title: "Chapters 4-5 - Matrix Inversion and Determinants"
+title: "Chapter - Matrix Determinants"
 author: "Rodolfo León"
 format: 
   pdf:
