@@ -60,6 +60,12 @@ lu_d <- doolittle_decomposition(A)
   pander("L (Doolittle)"); pander(lu_d$L)
   pander("U (Doolittle)"); pander(lu_d$U)
 ```
+```{r}
+lu_c <- crout_decomposition(A)
+pander("L (Crout)"); pander(lu_d$L)
+  pander("U (Crout)"); pander(lu_d$U)
+```
+
 
 ```{r}
 # 3.4
@@ -87,6 +93,25 @@ lu_d <- doolittle_decomposition(K)
 ```
 
 ```{r}
+# 3.6
+A = matrix(c(2,2,1,0,
+              3,0,-1,1,
+              0,1,0,5,
+              -1,1,0,0),
+           nrow = 4, byrow = TRUE)
+
+lu_d <- doolittle_decomposition(A)
+  pander("L (Doolittle)"); pander(lu_d$L)
+  pander("U (Doolittle)"); pander(lu_d$U)
+```
+```{r}
+lu_c <- crout_decomposition(A)
+pander("L (Crout)"); pander(lu_d$L)
+  pander("U (Crout)"); pander(lu_d$U)
+```
+
+
+```{r}
 F <- matrix(c(1,2,3,4,
               2,-2,-1,1,
               1,-3,4,-4,
@@ -105,7 +130,24 @@ A <-  matrix(c(2,2,1,0,
 
 b <- c(10,-11,5,14)
 
+cat("Solve Doolittle:\n")
 solve_doolittle(A, b)
+cat("\nSolve base R:\n")
+solve(A, b)
 
 ```
 
+```{r}
+# 3.24
+A <- matrix(c(1,2,-2,3,
+              -1,1,0,2,
+              3,-3,4,1,
+              2,1,1,-2),
+            nrow = 4, byrow = TRUE)
+b = c(2,-4,16,9)
+
+cat("Solve Doolittle:\n")
+solve_doolittle(A, b)
+cat("\nSolve base R:\n")
+print(round(solve(A, b)))
+```
